@@ -53,6 +53,51 @@ Mat removeNoise(Mat source){
 	return img_noise;
 }
 
+Mat convertToBlackAndWhite(Mat source){
+	Mat im_gray;
+	cvtColor(source,im_gray,CV_RGB2GRAY);
+	return im_gray;
+}
+
+Scalar getRandomRgbColor(){
+	RNG rng(12345);
+	return Scalar(rng.uniform(0,255), rng.uniform(0, 255), rng.uniform(0, 255));
+}
+
+void connectedComponentsStats(Mat img)
+{
+	// Use connected components with stats
+	Mat labels, stats, centroids;
+	int num_objects= connectedComponentsWithStats(img, labels, stats,
+	centroids);
+	// Check the number of objects detected
+	if(num_objects < 2 ){
+		cout << "No objects detected" << endl;
+		return;
+	}else{
+		cout << "Number of objects detected: " << num_objects - 1 << endl;
+	}
+	// Create output image coloring the objects and show area
+	Mat output= Mat::zeros(img.rows,img.cols, CV_8UC3);
+	RNG rng( 0xFFFFFFFF );
+	for(int i=1; i<num_objects; i++){
+		cout << "Object "<< i << " with pos: " << centroids.at<Point2d>(i)
+		<< " with area " << stats.at<int>(i, CC_STAT_AREA) << endl;
+		Mat mask= labels==i;
+		output.setTo(getRandomRgbColor(), mask);
+		// draw text with area
+		stringstream ss;
+		ss << "area: " << stats.at<int>(i, CC_STAT_AREA);
+		putText(output,
+		ss.str(),
+		centroids.at<Point2d>(i),
+		FONT_HERSHEY_SIMPLEX,
+		0.4,
+		Scalar(255,255,255));
+	}
+	imshow("Video", output);
+}
+
 int main( int argc, const char** argv )
 {
 	CommandLineParser parser(argc, argv, keys);
@@ -87,9 +132,14 @@ int main( int argc, const char** argv )
 		frame = removeNoise(frame);
 
 		// Removemos el background por aproximacion
-		//frame = removeLight(frame, calculateLightPattern(frame), 1);
+		frame = removeLight(frame, calculateLightPattern(frame), 1);
 
+		// Convertimos la imagen a escala de grises
+		frame = convertToBlackAndWhite(frame);
+
+		// Conseguimos los componentes de la imagen
 		imshow("Video", frame);
+		//connectedComponentsStats(frame);
 		waitKey(100);
 	}
 	// Release the camera or video cap
