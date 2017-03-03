@@ -1,0 +1,8 @@
+Trabajar en OpenCV con python:
+
+Abrir terminal
+>> workon cv
+>> python
+
+Un tutorial para instalarlo en ubuntu 16:
+http://www.pyimagesearch.com/2016/10/24/ubuntu-16-04-how-to-install-opencv/
